@@ -29,15 +29,9 @@ def submit_login(request):
             messages.error(request, "Usuário ou senha inválido")
     return redirect('/')
 
-def evento(request, titulo_evento):
-    try:
-        evento = Evento.objects.get(titulo=titulo_evento)
-    except Evento.DoesNotExist:
-        return HttpResponse("Evento não encontrado!")
-
-    resposta = evento.local
-
-    return HttpResponse('local: {}'.format(resposta))
+@login_required(login_url='/login/')
+def evento(request):
+    return render(request, 'evento.html')
 
 @login_required(login_url='/login/')
 def lista_eventos(request):
@@ -45,3 +39,18 @@ def lista_eventos(request):
     evento = Evento.objects.filter(usuario=usuario)
     dados = {'eventos':evento}
     return render(request, 'agenda.html', dados)
+
+@login_required
+def submit_evento(request):
+    if request.POST:
+        titulo = request.POST.get('titulo')
+        data_evento = request.POST.get('data_evento')
+        descricao = request.POST.get('descricao')
+        local = request.POST.get('local')
+        usuario = request.user
+        Evento.objects.create(titulo=titulo,
+                              data_evento=data_evento,
+                              descricao=descricao,
+                              local=local,
+                              usuario=usuario)
+    return redirect('/')
